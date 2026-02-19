@@ -92,12 +92,24 @@ Describe 'GitAliases.Extras module' {
         Get-Command Test-InGitRepo -ErrorAction Stop | Should -Not -BeNullOrEmpty
         Get-Command UpMerge -ErrorAction Stop | Should -Not -BeNullOrEmpty
         Get-Command UpRebase -ErrorAction Stop | Should -Not -BeNullOrEmpty
+        Get-Command Get-Git-Aliases -ErrorAction Stop | Should -Not -BeNullOrEmpty
         Get-Command gfp -ErrorAction Stop | Should -Not -BeNullOrEmpty
         Get-Command gsw -ErrorAction Stop | Should -Not -BeNullOrEmpty
     }
 
     It 'Test-InGitRepo returns a boolean value outside or inside a repository' {
         (Test-InGitRepo).GetType().Name | Should -Be 'Boolean'
+    }
+
+    It 'Get-Git-Aliases resolves custom alias grsh' {
+        $definition = Get-Git-Aliases grsh
+        $definition | Should -Match 'git reset --soft HEAD~1'
+    }
+
+    It 'Get-Git-Aliases lists aliases from GitAliases.Extras' {
+        $allAliasesText = (Get-Git-Aliases | Out-String)
+        $allAliasesText | Should -Match '(?im)^\s*grsh\s+'
+        $allAliasesText | Should -Match '(?im)^\s*gfp\s+'
     }
 }
 

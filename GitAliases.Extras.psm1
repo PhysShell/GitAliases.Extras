@@ -123,6 +123,116 @@ function Get-GitLongOptionCompletions {
     }
 }
 
+function Format-GitAliasDefinitionSafe {
+    param(
+        [AllowEmptyString()]
+        [string]$Definition
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Definition)) {
+        return ''
+    }
+
+    $definitionLines = $Definition.Trim() -split "`r?`n" | ForEach-Object {
+        $rawLine = [string]$_
+        $line = $rawLine.TrimEnd()
+        if ($rawLine -match "^`t") {
+            if ($line.Length -ge 1) {
+                return $line.Substring(1)
+            }
+
+            return ''
+        }
+        if ($rawLine -match '^    ') {
+            if ($line.Length -ge 4) {
+                return $line.Substring(4)
+            }
+
+            return ''
+        }
+
+        return $line
+    }
+
+    return ($definitionLines -join "`n")
+}
+
+function Get-GitAliasEntries {
+    $blacklist = @(
+        'Get-Git-CurrentBranch',
+        'Remove-Alias',
+        'Format-AliasDefinition',
+        'Get-Git-Aliases',
+        'Write-Host-Deprecated',
+        'Format-GitAliasDefinitionSafe',
+        'Get-GitAliasEntries'
+    )
+
+    $modulePriority = @{
+        'GitAliases.Extras' = 0
+        'git-aliases'       = 1
+    }
+
+    $entries = @()
+    $aliasNamePattern = '^g[0-9A-Za-z!]+$'
+    foreach ($moduleName in @('GitAliases.Extras', 'git-aliases')) {
+        $commands = Get-Command -Module $moduleName -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.Name -notin $blacklist -and
+                $_.CommandType -in @('Function', 'Alias') -and
+                $_.Name -match $aliasNamePattern
+            }
+
+        foreach ($command in $commands) {
+            $definition = switch ($command.CommandType) {
+                'Alias' { "Alias -> $($command.Definition)" }
+                default { Format-GitAliasDefinitionSafe -Definition $command.Definition }
+            }
+
+            if ([string]::IsNullOrWhiteSpace($definition)) {
+                continue
+            }
+
+            $entries += [PSCustomObject]@{
+                Name       = $command.Name
+                Definition = $definition
+                ModuleName = $moduleName
+                Priority   = $modulePriority[$moduleName]
+            }
+        }
+    }
+
+    return $entries |
+        Sort-Object Priority, Name |
+        Group-Object Name |
+        ForEach-Object { $_.Group[0] } |
+        Sort-Object Name
+}
+
+function Get-Git-Aliases {
+    [CmdletBinding()]
+    param(
+        [AllowEmptyString()]
+        [string]$Alias
+    )
+
+    $Alias = if ($null -eq $Alias) { '' } else { $Alias.Trim() }
+    $aliases = Get-GitAliasEntries
+
+    if (-not ([string]::IsNullOrWhiteSpace($Alias))) {
+        $foundAlias = $aliases | Where-Object { $_.Name -eq $Alias } | Select-Object -First 1
+        if ($null -eq $foundAlias) {
+            Write-Error "Alias '$Alias' not found." -ErrorAction Stop
+        }
+
+        return $foundAlias.Definition
+    }
+
+    return $aliases |
+        Select-Object Name, ModuleName, Definition |
+        Format-Table -AutoSize -Wrap
+}
+
 
 # --- Custom Git Command Functions ---
 function UpMerge {

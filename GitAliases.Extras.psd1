@@ -14,6 +14,7 @@
         'Test-WorkingTreeClean',
         'Get-CurrentBranch',
         'Test-GitRefExists',
+        'Get-Git-Aliases',
         'UpMerge',
         'UpRebase',
         'gapt',
