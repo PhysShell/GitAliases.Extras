@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [switch]$LintOnly,
-    [switch]$TestOnly
+    [switch]$TestOnly,
+    [switch]$CurrentShellOnly
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,7 +16,11 @@ if (-not $TestOnly) {
 }
 
 if (-not $LintOnly) {
-    & (Join-Path $root 'tools\test.ps1')
+    $testArgs = @{}
+    if ($CurrentShellOnly) {
+        $testArgs.CurrentShellOnly = $true
+    }
+    & (Join-Path $root 'tools\test.ps1') @testArgs
 }
 
 Write-Host 'CI checks completed.'

@@ -47,4 +47,4 @@ jobs:
         shell: pwsh
         run: |
           $exe = '${{ matrix.ps_exe }}'
-          & $exe -NoProfile -File .\tools\ci.ps1
+          & $exe -NoProfile -File .\tools\ci.ps1 -CurrentShellOnly

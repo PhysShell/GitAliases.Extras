@@ -67,6 +67,36 @@ BeforeAll {
         throw "Could not find blob hash prefix '$Prefix' within $MaxAttempts attempts."
     }
 
+    function Script:Get-TabCompletionResult {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$Line
+        )
+
+        TabExpansion2 -inputScript $Line -cursorColumn $Line.Length
+    }
+
+    function Script:Get-LongOptionCompletionResult {
+        [CmdletBinding()]
+        param(
+            [Parameter(Mandatory = $true)]
+            [string]$CommandName,
+            [Parameter(Mandatory = $true)]
+            [string]$FallbackPrefix
+        )
+
+        # In Windows PowerShell 5.1, a bare "--" token is parsed in a way that
+        # often bypasses argument completers entirely. Probe with "--" first,
+        # then retry with a concrete prefix to validate long-option completion.
+        $result = Get-TabCompletionResult -Line ("{0} --" -f $CommandName)
+        if ($result.CompletionMatches.Count -gt 0 -or $PSVersionTable.PSVersion.Major -ge 6) {
+            return $result
+        }
+
+        return (Get-TabCompletionResult -Line ("{0} {1}" -f $CommandName, $FallbackPrefix))
+    }
+
     [string]$script:RepoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..') |
         Select-Object -ExpandProperty Path -First 1
     $script:ModuleManifest = Join-Path $script:RepoRoot 'git-aliases-extra.psd1'
@@ -301,8 +331,7 @@ Describe 'gsw integration' {
     It 'completes long options for gsw alias' -Skip:(-not (Get-Command git -ErrorAction SilentlyContinue)) {
         Push-Location $script:RepoRoot
         try {
-            $line = 'gsw --'
-            $result = TabExpansion2 -inputScript $line -cursorColumn $line.Length
+            $result = Get-LongOptionCompletionResult -CommandName 'gsw' -FallbackPrefix '--t'
         } finally {
             Pop-Location
         }
@@ -315,8 +344,7 @@ Describe 'gsw integration' {
     It 'completes long options for gco alias from git-aliases module' -Skip:(-not (Get-Command git -ErrorAction SilentlyContinue) -or -not $script:HasGcoAlias) {
         Push-Location $script:RepoRoot
         try {
-            $line = 'gco --'
-            $result = TabExpansion2 -inputScript $line -cursorColumn $line.Length
+            $result = Get-LongOptionCompletionResult -CommandName 'gco' -FallbackPrefix '--d'
         } finally {
             Pop-Location
         }

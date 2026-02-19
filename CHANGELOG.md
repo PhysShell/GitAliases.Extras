@@ -4,6 +4,17 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog and the project uses Semantic Versioning.
 
+## [0.1.2] - 2026-02-19
+
+### Added
+
+- Local multi-shell test execution (`powershell` + `pwsh`) in `tools/test.ps1` with clear missing-shell errors.
+
+### Fixed
+
+- Stabilized long-option completion integration tests in Windows PowerShell 5.1 (`gsw`/`gco`).
+
+
 ## [0.1.1] - 2026-02-19
 
 ### Added

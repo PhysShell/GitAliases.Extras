@@ -249,6 +249,9 @@ Run both lint and tests:
 .\tools\ci.ps1
 ```
 
+By default, local test runs execute in both `powershell` (Windows PowerShell 5.1) and `pwsh` (PowerShell 7+).  
+If one of these shells is missing, the script fails with a clear error.
+
 Run only lint:
 
 ```powershell
@@ -259,6 +262,12 @@ Run only tests:
 
 ```powershell
 .\tools\ci.ps1 -TestOnly
+```
+
+Run checks only in the current shell (used by CI matrix):
+
+```powershell
+.\tools\ci.ps1 -CurrentShellOnly
 ```
 
 ## Commit hooks
