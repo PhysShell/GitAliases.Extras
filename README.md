@@ -282,14 +282,18 @@ Checks are skipped when:
 This repository includes:
 
 - `.github/workflows/ci.yml` for lint + tests
-- `.github/workflows/publish.yml` for PSGallery publishing
+- `.github/workflows/publish.yml` for PSGallery publish + GitHub Release creation
 
 To publish from CI:
 
 1. Add repository secret `PSGALLERY_API_KEY`.
 2. Add release notes to `CHANGELOG.md` under `## [<ModuleVersion>] - YYYY-MM-DD`.
 3. Bump `ModuleVersion` in `git-aliases-extra.psd1`.
-4. Push a tag `v<ModuleVersion>` (for example, `v0.1.0`) or run the publish workflow manually.
+4. Push a tag `v<ModuleVersion>` (for example, `v0.1.1`) or run the publish workflow manually.
+
+On tag push, the publish workflow does both:
+- publishes the module to PSGallery;
+- creates/updates GitHub Release for the same tag using notes from `CHANGELOG.md`.
 
 ## What CI checks
 

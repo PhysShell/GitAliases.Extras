@@ -72,6 +72,13 @@ Describe 'git-aliases-extra tooling' {
         (Test-Path -LiteralPath (Join-Path $script:RepoRoot 'tools\prepare-publish.ps1')) | Should -BeTrue
     }
 
+    It 'publishes GitHub release from publish workflow' {
+        $workflowPath = Join-Path $script:RepoRoot '.github\workflows\publish.yml'
+        $workflowText = Get-Content -LiteralPath $workflowPath -Raw
+        $workflowText | Should -Match 'Create or Update GitHub Release'
+        $workflowText | Should -Match 'softprops/action-gh-release@v2'
+    }
+
     It 'resolves release notes from changelog for manifest version' {
         $manifest = Test-ModuleManifest -Path $script:ModuleManifest -ErrorAction Stop
         $version = $manifest.Version.ToString()
