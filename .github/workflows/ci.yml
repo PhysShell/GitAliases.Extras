@@ -7,26 +7,31 @@ on:
 
 jobs:
   windows:
+    name: ${{ matrix.name }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - shell: powershell
-            name: WindowsPowerShell
-          - shell: pwsh
-            name: PowerShell
+          - name: Windows PowerShell 5.1
+            ps_exe: powershell
+          - name: PowerShell 7
+            ps_exe: pwsh
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Show PowerShell Version
-        shell: ${{ matrix.shell }}
-        run: $PSVersionTable | Format-List
+        shell: pwsh
+        run: |
+          $exe = '${{ matrix.ps_exe }}'
+          & $exe -NoProfile -Command '$PSVersionTable | Format-List'
 
       - name: Install Dependencies
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
+          $exe = '${{ matrix.ps_exe }}'
+          $installScript = @'
           if (-not (Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue)) {
             Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force
           }
@@ -35,8 +40,11 @@ jobs:
           Install-Module Pester -Scope CurrentUser -RequiredVersion 5.7.1 -Force
           Install-Module posh-git -Scope CurrentUser -Force
           Install-Module git-aliases -Scope CurrentUser -Force
+          '@
+          & $exe -NoProfile -Command $installScript
 
       - name: Run Lint and Tests
-        shell: ${{ matrix.shell }}
+        shell: pwsh
         run: |
-          .\tools\ci.ps1
+          $exe = '${{ matrix.ps_exe }}'
+          & $exe -NoProfile -File .\tools\ci.ps1
