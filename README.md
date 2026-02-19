@@ -4,6 +4,22 @@ Custom PowerShell git aliases and tab completion helpers on top of `posh-git` an
 
 Mainly inspired by: https://github.com/zh30/zsh-shortcut-git
 
+## Breaking Changes (2026-02-19)
+
+- Renamed module: `GitAliases.Extras` -> `git-aliases-extra`
+- Renamed manifest/script files:
+  - `GitAliases.Extras.psd1` -> `git-aliases-extra.psd1`
+  - `GitAliases.Extras.psm1` -> `git-aliases-extra.psm1`
+- Renamed repository URL:
+  - `https://github.com/PhysShell/GitAliases.Extras` -> `https://github.com/PhysShell/git-aliases-extra`
+
+Migration steps:
+
+```powershell
+Remove-Module GitAliases.Extras -ErrorAction SilentlyContinue
+Import-Module git-aliases-extra
+```
+
 ## Module installation
 
 Install from PowerShell Gallery:
