@@ -24,8 +24,8 @@ if (-not (Test-Path -LiteralPath $settings)) {
 }
 
 $targets = @(
-    (Join-Path $repoRoot 'GitAliases.Extras.psm1'),
-    (Join-Path $repoRoot 'GitAliases.Extras.psd1'),
+    (Join-Path $repoRoot 'git-aliases-extra.psm1'),
+    (Join-Path $repoRoot 'git-aliases-extra.psd1'),
     (Join-Path $repoRoot 'tests'),
     (Join-Path $repoRoot 'tools')
 ) | Where-Object { Test-Path -LiteralPath $_ }

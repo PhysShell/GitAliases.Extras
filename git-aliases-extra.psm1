@@ -1,5 +1,5 @@
 # ===================================================================
-# GitAliases.Extras.psm1
+# git-aliases-extra.psm1
 #
 # Extends posh-git and git-aliases with custom functions and
 # adds robust tab completion for all git aliases.
@@ -158,6 +158,11 @@ function Format-GitAliasDefinitionSafe {
 }
 
 function Get-GitAliasEntries {
+    param(
+        [ValidateSet('all', 'base', 'extras')]
+        [string]$Source = 'all'
+    )
+
     $blacklist = @(
         'Get-Git-CurrentBranch',
         'Remove-Alias',
@@ -169,13 +174,17 @@ function Get-GitAliasEntries {
     )
 
     $modulePriority = @{
-        'GitAliases.Extras' = 0
+        'git-aliases-extra' = 0
         'git-aliases'       = 1
+    }
+    $moduleSource = @{
+        'git-aliases-extra' = 'extras'
+        'git-aliases'       = 'base'
     }
 
     $entries = @()
     $aliasNamePattern = '^g[0-9A-Za-z!]+$'
-    foreach ($moduleName in @('GitAliases.Extras', 'git-aliases')) {
+    foreach ($moduleName in @('git-aliases-extra', 'git-aliases')) {
         $commands = Get-Command -Module $moduleName -ErrorAction SilentlyContinue |
             Where-Object {
                 $_.Name -notin $blacklist -and
@@ -197,39 +206,72 @@ function Get-GitAliasEntries {
                 Name       = $command.Name
                 Definition = $definition
                 ModuleName = $moduleName
+                Source     = $moduleSource[$moduleName]
                 Priority   = $modulePriority[$moduleName]
             }
         }
     }
 
-    return $entries |
-        Sort-Object Priority, Name |
-        Group-Object Name |
-        ForEach-Object { $_.Group[0] } |
-        Sort-Object Name
+    if ($Source -ne 'all') {
+        return $entries |
+            Where-Object { $_.Source -eq $Source } |
+            Sort-Object Name
+    }
+
+    $ordered = $entries | Sort-Object Priority, Name
+    $seen = @{}
+    $result = foreach ($entry in $ordered) {
+        if (-not $seen.ContainsKey($entry.Name)) {
+            $seen[$entry.Name] = $true
+            $entry
+        }
+    }
+
+    return @($result)
 }
 
 function Get-Git-Aliases {
     [CmdletBinding()]
     param(
         [AllowEmptyString()]
-        [string]$Alias
+        [string]$Alias,
+        [switch]$Base,
+        [switch]$Extras
     )
 
+    if ($Base -and $Extras) {
+        Write-Error "Use either -Base or -Extras, not both." -ErrorAction Stop
+    }
+
+    $source = 'all'
+    if ($Base) { $source = 'base' }
+    if ($Extras) { $source = 'extras' }
+
     $Alias = if ($null -eq $Alias) { '' } else { $Alias.Trim() }
-    $aliases = Get-GitAliasEntries
+    $aliases = Get-GitAliasEntries -Source $source
 
     if (-not ([string]::IsNullOrWhiteSpace($Alias))) {
         $foundAlias = $aliases | Where-Object { $_.Name -eq $Alias } | Select-Object -First 1
         if ($null -eq $foundAlias) {
-            Write-Error "Alias '$Alias' not found." -ErrorAction Stop
+            $scopeText = switch ($source) {
+                'base' { ' in base aliases' }
+                'extras' { ' in extras aliases' }
+                default { '' }
+            }
+            Write-Error ("Alias '{0}' not found{1}." -f $Alias, $scopeText) -ErrorAction Stop
         }
 
         return $foundAlias.Definition
     }
 
+    if ($source -in @('base', 'extras')) {
+        return $aliases |
+            Select-Object Name, Definition |
+            Format-Table -AutoSize -Wrap
+    }
+
     return $aliases |
-        Select-Object Name, ModuleName, Definition |
+        Select-Object Name, Source, Definition |
         Format-Table -AutoSize -Wrap
 }
 

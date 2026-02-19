@@ -16,7 +16,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         shell: pwsh
         run: |
-          $manifest = Test-ModuleManifest -Path .\GitAliases.Extras.psd1 -ErrorAction Stop
+          $manifest = Test-ModuleManifest -Path .\git-aliases-extra.psd1 -ErrorAction Stop
           $tagVersion = '${{ github.ref_name }}'.TrimStart('v')
           if ($manifest.Version.ToString() -ne $tagVersion) {
             throw "Manifest version '$($manifest.Version)' does not match tag version '$tagVersion'."
@@ -40,7 +40,7 @@ jobs:
             throw "PSGALLERY_API_KEY secret is not set."
           }
 
-          $manifest = Test-ModuleManifest -Path .\GitAliases.Extras.psd1 -ErrorAction Stop
+          $manifest = Test-ModuleManifest -Path .\git-aliases-extra.psd1 -ErrorAction Stop
           $moduleName = $manifest.Name
           $moduleVersion = $manifest.Version.ToString()
 

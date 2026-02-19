@@ -69,7 +69,7 @@ BeforeAll {
 
     [string]$script:RepoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..') |
         Select-Object -ExpandProperty Path -First 1
-    $script:ModuleManifest = Join-Path $script:RepoRoot 'GitAliases.Extras.psd1'
+    $script:ModuleManifest = Join-Path $script:RepoRoot 'git-aliases-extra.psd1'
 
     if (Get-Module -ListAvailable -Name git-aliases) {
         Import-Module git-aliases -DisableNameChecking -ErrorAction SilentlyContinue
@@ -80,12 +80,12 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Module GitAliases.Extras -Force -ErrorAction SilentlyContinue
+    Remove-Module git-aliases-extra -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'GitAliases.Extras module' {
+Describe 'git-aliases-extra module' {
     It 'imports successfully' {
-        Get-Module GitAliases.Extras | Should -Not -BeNullOrEmpty
+        Get-Module git-aliases-extra | Should -Not -BeNullOrEmpty
     }
 
     It 'exports expected commands' {
@@ -106,10 +106,61 @@ Describe 'GitAliases.Extras module' {
         $definition | Should -Match 'git reset --soft HEAD~1'
     }
 
-    It 'Get-Git-Aliases lists aliases from GitAliases.Extras' {
+    It 'Get-Git-Aliases lists aliases from git-aliases-extra' {
         $allAliasesText = (Get-Git-Aliases | Out-String)
         $allAliasesText | Should -Match '(?im)^\s*grsh\s+'
         $allAliasesText | Should -Match '(?im)^\s*gfp\s+'
+    }
+
+    It 'Get-Git-Aliases returns extras first and keeps alphabetical order per group' {
+        $allAliasesText = (Get-Git-Aliases | Out-String)
+        $lines = $allAliasesText -split "`r?`n"
+
+        $extrasNames = @()
+        $baseNames = @()
+        $firstBaseLine = -1
+        $lastExtrasLine = -1
+
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            $line = $lines[$i]
+            if ($line -match '^\s*([^\s]+)\s+extras\s+') {
+                $extrasNames += $matches[1]
+                $lastExtrasLine = $i
+                continue
+            }
+
+            if ($line -match '^\s*([^\s]+)\s+base\s+') {
+                $baseNames += $matches[1]
+                if ($firstBaseLine -lt 0) {
+                    $firstBaseLine = $i
+                }
+            }
+        }
+
+        $extrasNames.Count | Should -BeGreaterThan 0
+        $baseNames.Count | Should -BeGreaterThan 0
+        (($extrasNames -join "`n") -eq (($extrasNames | Sort-Object) -join "`n")) | Should -BeTrue
+        (($baseNames -join "`n") -eq (($baseNames | Sort-Object) -join "`n")) | Should -BeTrue
+        $lastExtrasLine | Should -BeLessThan $firstBaseLine
+    }
+
+    It 'Get-Git-Aliases -Base returns only base aliases' {
+        $baseAliasesText = (Get-Git-Aliases -Base | Out-String)
+        $baseAliasesText | Should -Match '(?im)^\s*ga\s+'
+        $baseAliasesText | Should -Not -Match '(?im)^\s*grsh\s+'
+    }
+
+    It 'Get-Git-Aliases -Extras returns only extras aliases' {
+        $extrasAliasesText = (Get-Git-Aliases -Extras | Out-String)
+        $extrasAliasesText | Should -Match '(?im)^\s*grsh\s+'
+        $extrasAliasesText | Should -Not -Match '(?im)^\s*gaa\s+'
+    }
+
+    It 'Get-Git-Aliases respects source filter for single alias lookup' {
+        $extrasDefinition = Get-Git-Aliases -Alias grsh -Extras
+        $extrasDefinition | Should -Match 'git reset --soft HEAD~1'
+
+        { Get-Git-Aliases -Alias grsh -Base } | Should -Throw
     }
 }
 

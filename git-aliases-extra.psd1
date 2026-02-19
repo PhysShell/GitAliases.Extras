@@ -1,5 +1,5 @@
 @{
-    RootModule = 'GitAliases.Extras.psm1'
+    RootModule = 'git-aliases-extra.psm1'
     ModuleVersion = '0.1.0'
     GUID = 'a5c2859e-7dce-4853-9db5-8cb7927dbdda'
     Author = 'PhysShell'
@@ -47,9 +47,9 @@
     PrivateData = @{
         PSData = @{
             Tags = @('git', 'aliases', 'completion', 'posh-git', 'powershell')
-            ProjectUri = 'https://github.com/PhysShell/GitAliases.Extras'
-            LicenseUri = 'https://github.com/PhysShell/GitAliases.Extras/blob/main/LICENSE'
-            RepositorySourceLocation = 'https://github.com/PhysShell/GitAliases.Extras'
+            ProjectUri = 'https://github.com/PhysShell/git-aliases-extra'
+            LicenseUri = 'https://github.com/PhysShell/git-aliases-extra/blob/main/LICENSE'
+            RepositorySourceLocation = 'https://github.com/PhysShell/git-aliases-extra'
             ReleaseNotes = 'Standalone module extracted from dotfiles.'
         }
     }

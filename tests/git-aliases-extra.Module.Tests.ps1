@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 BeforeAll {
     [string]$script:RepoRoot = Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..') |
         Select-Object -ExpandProperty Path -First 1
-    $script:ModuleManifest = Join-Path $script:RepoRoot 'GitAliases.Extras.psd1'
+    $script:ModuleManifest = Join-Path $script:RepoRoot 'git-aliases-extra.psd1'
 
     if (Get-Module -ListAvailable -Name git-aliases) {
         Import-Module git-aliases -DisableNameChecking -ErrorAction SilentlyContinue
@@ -14,18 +14,18 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Module GitAliases.Extras -Force -ErrorAction SilentlyContinue
+    Remove-Module git-aliases-extra -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'GitAliases.Extras manifest' {
+Describe 'git-aliases-extra manifest' {
     It 'is a valid module manifest' {
         $manifest = Test-ModuleManifest -Path $script:ModuleManifest -ErrorAction Stop
-        $manifest.Name | Should -Be 'GitAliases.Extras'
+        $manifest.Name | Should -Be 'git-aliases-extra'
     }
 
     It 'declares gallery metadata and required modules' {
         $manifest = Import-PowerShellDataFile -Path $script:ModuleManifest
-        $manifest.PrivateData.PSData.ProjectUri | Should -Match '^https://github.com/PhysShell/GitAliases\.Extras'
+        $manifest.PrivateData.PSData.ProjectUri | Should -Match '^https://github.com/PhysShell/git-aliases-extra'
         $manifest.PrivateData.PSData.LicenseUri | Should -Match '/LICENSE$'
 
         $requiredModuleNames = @($manifest.RequiredModules | ForEach-Object {
@@ -36,9 +36,9 @@ Describe 'GitAliases.Extras manifest' {
     }
 }
 
-Describe 'GitAliases.Extras module exports' {
+Describe 'git-aliases-extra module exports' {
     It 'imports successfully' {
-        Get-Module GitAliases.Extras | Should -Not -BeNullOrEmpty
+        Get-Module git-aliases-extra | Should -Not -BeNullOrEmpty
     }
 
     It 'exports key commands' {
@@ -48,7 +48,7 @@ Describe 'GitAliases.Extras module exports' {
     }
 }
 
-Describe 'GitAliases.Extras tooling' {
+Describe 'git-aliases-extra tooling' {
     It 'includes install-hooks and hook templates' {
         (Test-Path -LiteralPath (Join-Path $script:RepoRoot 'tools\install-hooks.ps1')) | Should -BeTrue
         (Test-Path -LiteralPath (Join-Path $script:RepoRoot 'tools\hooks\pre-commit')) | Should -BeTrue
