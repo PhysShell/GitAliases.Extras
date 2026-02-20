@@ -90,23 +90,25 @@ Describe 'git-aliases-extra tooling' {
     It 'prepares runtime-only publish layout' {
         $scriptPath = Join-Path $script:RepoRoot 'tools\prepare-publish.ps1'
         $stagingPath = Join-Path ([IO.Path]::GetTempPath()) ("gae-stage-{0}" -f [guid]::NewGuid().ToString('N'))
+        $moduleName = 'git-aliases-extra'
 
         try {
             $output = & $scriptPath -SourcePath $script:RepoRoot -OutputPath $stagingPath
-            $output | Should -Be $stagingPath
+            $expectedModulePath = Join-Path $stagingPath $moduleName
+            $output | Should -Be $expectedModulePath
 
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'git-aliases-extra.psd1')) | Should -BeTrue
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'git-aliases-extra.psm1')) | Should -BeTrue
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'README.md')) | Should -BeTrue
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'LICENSE')) | Should -BeTrue
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'CHANGELOG.md')) | Should -BeTrue
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'assets\icon.png')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'git-aliases-extra.psd1')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'git-aliases-extra.psm1')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'README.md')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'LICENSE')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'CHANGELOG.md')) | Should -BeTrue
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'assets\icon.png')) | Should -BeTrue
 
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'tests')) | Should -BeFalse
-            (Test-Path -LiteralPath (Join-Path $stagingPath 'tools')) | Should -BeFalse
-            (Test-Path -LiteralPath (Join-Path $stagingPath '.github')) | Should -BeFalse
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'tests')) | Should -BeFalse
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath 'tools')) | Should -BeFalse
+            (Test-Path -LiteralPath (Join-Path $expectedModulePath '.github')) | Should -BeFalse
 
-            { Test-ModuleManifest -Path (Join-Path $stagingPath 'git-aliases-extra.psd1') -ErrorAction Stop } |
+            { Test-ModuleManifest -Path (Join-Path $expectedModulePath 'git-aliases-extra.psd1') -ErrorAction Stop } |
                 Should -Not -Throw
         } finally {
             Remove-Item -LiteralPath $stagingPath -Recurse -Force -ErrorAction SilentlyContinue

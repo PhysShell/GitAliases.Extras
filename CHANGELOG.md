@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file.
 
 The format is based on Keep a Changelog and the project uses Semantic Versioning.
 
+## [0.1.4] - 2026-02-20
+
+### Fixed
+
+- Publish pipeline packaging layout for PSGallery:
+  - `tools/prepare-publish.ps1` now stages files under `<output>\git-aliases-extra\...`
+  - script returns the module directory path (not the staging root), matching `Publish-Module -Path` expectations.
+- Module test coverage for publish staging updated to validate module-directory output shape.
+
 ## [0.1.3] - 2026-02-20
 
 ### Added

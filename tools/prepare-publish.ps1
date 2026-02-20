@@ -30,7 +30,8 @@ if (Test-Path -LiteralPath $OutputPath) {
     Remove-Item -LiteralPath $OutputPath -Recurse -Force
 }
 
-New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
+$moduleOutputPath = Join-Path $OutputPath $manifest.Name
+New-Item -ItemType Directory -Path $moduleOutputPath -Force | Out-Null
 
 $filesToCopy = @(
     'git-aliases-extra.psd1',
@@ -46,7 +47,7 @@ foreach ($relativePath in $filesToCopy) {
         throw "Required publish file missing: $relativePath"
     }
 
-    $destination = Join-Path $OutputPath $relativePath
+    $destination = Join-Path $moduleOutputPath $relativePath
     $destinationDir = Split-Path -Parent $destination
     if ($destinationDir -and -not (Test-Path -LiteralPath $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
@@ -62,9 +63,9 @@ foreach ($dirName in $optionalDirs) {
         continue
     }
 
-    Copy-Item -LiteralPath $sourceDir -Destination (Join-Path $OutputPath $dirName) -Recurse -Force
+    Copy-Item -LiteralPath $sourceDir -Destination (Join-Path $moduleOutputPath $dirName) -Recurse -Force
 }
 
-Test-ModuleManifest -Path (Join-Path $OutputPath 'git-aliases-extra.psd1') -ErrorAction Stop | Out-Null
+Test-ModuleManifest -Path (Join-Path $moduleOutputPath 'git-aliases-extra.psd1') -ErrorAction Stop | Out-Null
 
-$OutputPath
+$moduleOutputPath
